@@ -1,6 +1,8 @@
 <?php
 
-ini_set('max_execution_time', 300); //this time could be increased because server power
+ini_set('max_execution_time', 600); //this time could be increased because server power
+
+$start = microtime(true);
 
 $options = getopt("i:o:", ["input:","output:","agemin::","agemax::"]);
 
@@ -49,9 +51,9 @@ $tagIsOpen = false;
 $tagIsClose = false;
 $tagIsUser = false;
 $linesCount = 0;
+$usersCount = 0;
 //I used stream_get_line because in some situations it shows better perfomance than fgets
-while($buffer = stream_get_line($fileInput, 65535, "\n")) { 
-  $buffer .= "\n";
+while($buffer = stream_get_line($fileInput, 65535, "")) {
   $linesCount++;
   $bufferLen = strlen($buffer);
   for($i=0; $i<$bufferLen; $i++) {
@@ -80,6 +82,9 @@ while($buffer = stream_get_line($fileInput, 65535, "\n")) {
         if($tagName == 'user') {
           if($userAgeMin <= $currentUserAge && $currentUserAge <= $userAgeMax) {
             fwrite($fileOutput, "\t<".$tagName.">\n".$currentUserXml."\t</".$tagName.">\n");
+            $usersCount++;
+            echo "\rUsers found: $usersCount";
+            flush();
           }
           $currentUserXml = '';
           $currentUserAge = 0;
@@ -111,3 +116,8 @@ fwrite($fileOutput, "</users>");
 
 fclose($fileInput);
 fclose($fileOutput);
+
+$end = microtime(true);
+
+echo "\ntime spent: ".($end - $start)."\n";
+// for 2 millions users it takes 110 seconds
